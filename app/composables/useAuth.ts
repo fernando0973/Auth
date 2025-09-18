@@ -43,23 +43,26 @@ export const useAuth = () => {
   // Função para limpar tokens corrompidos/expirados
   const clearAuthTokens = async () => {
     try {
-      // Limpa a sessão do Supabase
-      await supabase.auth.signOut()
+      // Verifica se estamos no lado cliente
+      if (!process.client) return
       
-      // Limpa manualmente os tokens do localStorage (lado cliente)
-      if (process.client) {
-        localStorage.removeItem('supabase.auth.token')
-        
-        // Limpa tokens específicos do Supabase baseados no padrão comum
+      // Limpa a sessão do Supabase de forma silenciosa
+      await supabase.auth.signOut({ scope: 'local' })
+      
+      // Limpa tokens do localStorage de forma segura
+      try {
         const keys = Object.keys(localStorage)
         keys.forEach(key => {
           if (key.includes('supabase') || key.includes('auth-token') || key.startsWith('sb-')) {
             localStorage.removeItem(key)
           }
         })
+      } catch (storageError) {
+        console.warn('Erro ao limpar localStorage:', storageError)
       }
+      
     } catch (error) {
-      console.warn('Erro ao limpar tokens:', error)
+      console.warn('Erro ao limpar tokens (não crítico):', error)
     }
   }
 
@@ -90,14 +93,6 @@ export const useAuth = () => {
       
       // Tratamento de erros específicos do Supabase
       const authError = error as AuthError
-      
-      // Se for erro de token, limpa os tokens corrompidos
-      if (authError.message?.includes('refresh_token_not_found') || 
-          authError.message?.includes('Invalid Refresh Token')) {
-        await clearAuthTokens()
-        authState.error = 'Sessão expirada. Por favor, faça login novamente'
-        return false
-      }
       
       switch (authError.code) {
         case 'invalid_credentials':
@@ -153,14 +148,6 @@ export const useAuth = () => {
       
       // Tratamento de erros específicos do Supabase
       const authError = error as AuthError
-      
-      // Se for erro de token, limpa os tokens corrompidos
-      if (authError.message?.includes('refresh_token_not_found') || 
-          authError.message?.includes('Invalid Refresh Token')) {
-        await clearAuthTokens()
-        authState.error = 'Sessão expirada. Por favor, recarregue a página e tente novamente'
-        return false
-      }
       
       switch (authError.code) {
         case 'user_already_exists':

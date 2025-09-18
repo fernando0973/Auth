@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      exclude: ['/docs', '/recuperar-senha', '/login', '/criar-conta']
+      exclude: ['/docs', '/recuperar-senha', '/login', '/criar-conta', '/confirm']
     },
     cookieOptions: {
       secure: process.env.NODE_ENV === 'production',
@@ -20,7 +20,8 @@ export default defineNuxtConfig({
         flowType: 'pkce',
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        storageKey: 'supabase.auth.token'
       }
     }
   },
