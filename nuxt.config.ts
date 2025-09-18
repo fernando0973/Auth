@@ -11,7 +11,17 @@ export default defineNuxtConfig({
       exclude: ['/docs', '/recuperar-senha', '/login', '/criar-conta']
     },
     cookieOptions: {
-      secure: process.env.NODE_ENV === 'production'
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7, // 7 dias
+      sameSite: 'lax'
+    },
+    clientOptions: {
+      auth: {
+        flowType: 'pkce',
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
     }
   },
   ssr: true

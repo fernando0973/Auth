@@ -40,6 +40,29 @@ export const useAuth = () => {
     authState.error = null
   }
 
+  // Função para limpar tokens corrompidos/expirados
+  const clearAuthTokens = async () => {
+    try {
+      // Limpa a sessão do Supabase
+      await supabase.auth.signOut()
+      
+      // Limpa manualmente os tokens do localStorage (lado cliente)
+      if (process.client) {
+        localStorage.removeItem('supabase.auth.token')
+        
+        // Limpa tokens específicos do Supabase baseados no padrão comum
+        const keys = Object.keys(localStorage)
+        keys.forEach(key => {
+          if (key.includes('supabase') || key.includes('auth-token') || key.startsWith('sb-')) {
+            localStorage.removeItem(key)
+          }
+        })
+      }
+    } catch (error) {
+      console.warn('Erro ao limpar tokens:', error)
+    }
+  }
+
   // Função de login com email e senha
   const login = async (credentials: LoginCredentials): Promise<boolean> => {
     authState.isLoading = true
@@ -67,6 +90,14 @@ export const useAuth = () => {
       
       // Tratamento de erros específicos do Supabase
       const authError = error as AuthError
+      
+      // Se for erro de token, limpa os tokens corrompidos
+      if (authError.message?.includes('refresh_token_not_found') || 
+          authError.message?.includes('Invalid Refresh Token')) {
+        await clearAuthTokens()
+        authState.error = 'Sessão expirada. Por favor, faça login novamente'
+        return false
+      }
       
       switch (authError.code) {
         case 'invalid_credentials':
@@ -122,6 +153,14 @@ export const useAuth = () => {
       
       // Tratamento de erros específicos do Supabase
       const authError = error as AuthError
+      
+      // Se for erro de token, limpa os tokens corrompidos
+      if (authError.message?.includes('refresh_token_not_found') || 
+          authError.message?.includes('Invalid Refresh Token')) {
+        await clearAuthTokens()
+        authState.error = 'Sessão expirada. Por favor, recarregue a página e tente novamente'
+        return false
+      }
       
       switch (authError.code) {
         case 'user_already_exists':
@@ -238,6 +277,7 @@ export const useAuth = () => {
     loginWithMagicLink,
     logout,
     clearError,
+    clearAuthTokens,
     getUserProfile
   }
 }
