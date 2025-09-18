@@ -38,48 +38,8 @@
       </div>
 
       <!-- Formulário de troca de senha -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Alterar Senha
-        </h3>
-        
-        <form @submit.prevent="handlePasswordChange" class="space-y-4">
-          <!-- Nova Senha -->
-          <InputPassword
-            id="newPassword"
-            v-model="passwordForm.newPassword"
-            label="Nova Senha"
-            placeholder="Digite sua nova senha"
-            :error="passwordErrors.newPassword"
-            required
-          />
-
-          <!-- Confirmar Nova Senha -->
-          <InputPassword
-            id="confirmPassword"
-            v-model="passwordForm.confirmPassword"
-            label="Confirmar Nova Senha"
-            placeholder="Confirme sua nova senha"
-            :error="passwordErrors.confirmPassword"
-            required
-          />
-
-          <!-- Botão de Submit -->
-          <div class="pt-2">
-            <BaseButton
-              type="submit"
-              variant="primary"
-              size="lg"
-              class="w-full"
-              :loading="isLoading"
-            >
-              Alterar Senha
-            </BaseButton>
-          </div>
-        </form>
-      </div>
-
-      <!-- Botão Voltar -->
+      <!-- Seção de alteração de senha -->
+      <PasswordChangeForm />      <!-- Botão Voltar -->
       <div class="mt-6 text-center">
         <button
           @click="$router.back()"
@@ -94,8 +54,14 @@
 
 <script setup lang="ts">
 // Meta tags
+useSeoMeta({
+  title: 'Perfil - Auth App',
+  description: 'Página de perfil do usuário.'
+})
+
+// Middleware de autenticação
 definePageMeta({
-  title: 'Perfil'
+  middleware: 'auth-guard'
 })
 
 // Composables
@@ -103,21 +69,6 @@ const { getUserProfile } = useAuth()
 
 // Estado do usuário
 const userProfile = computed(() => getUserProfile())
-
-// Estado do formulário
-const passwordForm = reactive({
-  newPassword: '',
-  confirmPassword: ''
-})
-
-// Erros de validação
-const passwordErrors = reactive({
-  newPassword: '',
-  confirmPassword: ''
-})
-
-// Estado de loading
-const isLoading = ref(false)
 
 // Função para formatar data
 const formatDate = (dateString: string | null | undefined) => {
@@ -134,64 +85,4 @@ const formatDate = (dateString: string | null | undefined) => {
     return 'N/A'
   }
 }
-
-// Validação do formulário
-const validateForm = (): boolean => {
-  // Limpa erros anteriores
-  passwordErrors.newPassword = ''
-  passwordErrors.confirmPassword = ''
-  
-  let isValid = true
-
-  // Validar nova senha
-  if (!passwordForm.newPassword) {
-    passwordErrors.newPassword = 'Nova senha é obrigatória'
-    isValid = false
-  } else if (passwordForm.newPassword.length < 6) {
-    passwordErrors.newPassword = 'A senha deve ter pelo menos 6 caracteres'
-    isValid = false
-  }
-
-  // Validar confirmação
-  if (!passwordForm.confirmPassword) {
-    passwordErrors.confirmPassword = 'Confirmação de senha é obrigatória'
-    isValid = false
-  } else if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    passwordErrors.confirmPassword = 'As senhas não coincidem'
-    isValid = false
-  }
-
-  return isValid
-}
-
-// Handler do formulário (ainda sem ação)
-const handlePasswordChange = async () => {
-  // Valida o formulário
-  if (!validateForm()) {
-    return
-  }
-
-  // TODO: Implementar lógica de troca de senha
-  console.log('Formulário válido! Nova senha:', passwordForm.newPassword)
-  
-  // Simula loading por enquanto
-  isLoading.value = true
-  setTimeout(() => {
-    isLoading.value = false
-    console.log('Troca de senha seria executada aqui')
-  }, 1000)
-}
-
-// Limpa erros quando o usuário digita
-watch(() => passwordForm.newPassword, () => {
-  if (passwordErrors.newPassword) {
-    passwordErrors.newPassword = ''
-  }
-})
-
-watch(() => passwordForm.confirmPassword, () => {
-  if (passwordErrors.confirmPassword) {
-    passwordErrors.confirmPassword = ''
-  }
-})
 </script>
