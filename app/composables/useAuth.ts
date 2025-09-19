@@ -232,6 +232,94 @@ export const useAuth = () => {
     }
   }
 
+  // Função para alterar senha do usuário logado
+  const changePassword = async (newPassword: string): Promise<boolean> => {
+    authState.isLoading = true
+    authState.error = null
+
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (error) {
+        throw error
+      }
+
+      if (data.user) {
+        console.log('Senha alterada com sucesso')
+        return true
+      }
+
+      throw new Error('Falha na alteração da senha')
+
+    } catch (error: any) {
+      console.error('Erro ao alterar senha:', error)
+      
+      // Tratamento de erros específicos do Supabase
+      const authError = error as AuthError
+      
+      switch (authError.code) {
+        case 'weak_password':
+          authState.error = 'A nova senha deve ter pelo menos 6 caracteres'
+          break
+        case 'same_password':
+          authState.error = 'A nova senha deve ser diferente da atual'
+          break
+        default:
+          authState.error = authError.message || 'Erro desconhecido ao alterar senha'
+      }
+      
+      return false
+
+    } finally {
+      authState.isLoading = false
+    }
+  }
+
+  // Função para solicitar reset de senha via email
+  const requestPasswordReset = async (email: string): Promise<boolean> => {
+    authState.isLoading = true
+    authState.error = null
+
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/recuperar-senha`
+      })
+
+      if (error) {
+        throw error
+      }
+
+      console.log('Email de reset enviado para:', email)
+      return true
+
+    } catch (error: any) {
+      console.error('Erro ao solicitar reset de senha:', error)
+      
+      const authError = error as AuthError
+      
+      switch (authError.code) {
+        case 'invalid_email':
+          authState.error = 'Email inválido'
+          break
+        case 'email_not_found':
+          authState.error = 'Email não encontrado em nossa base de dados'
+          break
+        case 'too_many_requests':
+          authState.error = 'Muitas tentativas. Tente novamente em alguns minutos'
+          break
+        default:
+          authState.error = authError.message || 'Erro ao enviar email de recuperação'
+      }
+      
+      return false
+
+    } finally {
+      authState.isLoading = false
+    }
+  }
+
   // Função para obter informações do usuário atual
   const getUserProfile = () => {
     if (!user.value) return null
@@ -263,6 +351,8 @@ export const useAuth = () => {
     signUp,
     loginWithMagicLink,
     logout,
+    changePassword,
+    requestPasswordReset,
     clearError,
     clearAuthTokens,
     getUserProfile

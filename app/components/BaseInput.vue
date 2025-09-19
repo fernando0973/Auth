@@ -66,13 +66,33 @@ const props = withDefaults(defineProps<Props>(), {
 
 defineEmits<Emits>()
 
-// Gera ID único para o input (fixo para SSR)
+// Gera ID único para o input usando um ID sequencial
+let idCounter = 0
 const inputId = computed(() => {
-  if (props.label) {
-    // Use o label como base para ID consistente
-    return `input-${props.label.toLowerCase().replace(/\s+/g, '-')}`
+  // Gera um ID único combinando tipo, label e contador
+  const baseId = props.label 
+    ? props.label.toLowerCase().replace(/\s+/g, '-')
+    : props.type
+  
+  // Se ainda não temos um ID único para este componente, criar um
+  if (!componentId.value) {
+    componentId.value = `${baseId}-${++idCounter}`
   }
-  return `input-${props.type}`
+  
+  return componentId.value
+})
+
+// ID único do componente (mantém consistência durante re-renders)
+const componentId = ref('')
+
+// Inicializa o ID na montagem do componente
+onMounted(() => {
+  if (!componentId.value) {
+    const baseId = props.label 
+      ? props.label.toLowerCase().replace(/\s+/g, '-')
+      : props.type
+    componentId.value = `${baseId}-${++idCounter}`
+  }
 })
 
 // Classes dinâmicas baseadas nas props

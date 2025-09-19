@@ -157,6 +157,9 @@ interface LoginErrors {
   general?: string
 }
 
+// Composable de autenticação
+const { login, authState, clearError } = useAuth()
+
 // Estado do formulário
 const formData = reactive<LoginFormData>({
   email: '',
@@ -167,8 +170,8 @@ const formData = reactive<LoginFormData>({
 // Estado dos erros
 const errors = reactive<LoginErrors>({})
 
-// Estado de loading
-const isLoading = ref(false)
+// Estado de loading vem do composable
+const isLoading = computed(() => authState.isLoading)
 
 // Validação do formulário
 const isFormValid = computed(() => {
@@ -188,6 +191,7 @@ function clearErrors() {
   Object.keys(errors).forEach(key => {
     delete errors[key as keyof LoginErrors]
   })
+  clearError() // Limpa erros do composable também
 }
 
 // Função para validar campos
@@ -220,36 +224,37 @@ async function handleSubmit() {
     return
   }
 
-  isLoading.value = true
   clearErrors()
 
   try {
-    // TODO: Implementar lógica de login
-    console.log('Login data:', formData)
-    
-    // Simula chamada de API
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // TODO: Redirecionar após login bem-sucedido
-    // await navigateTo('/dashboard')
+    const success = await login({
+      email: formData.email,
+      password: formData.password
+    })
+
+    if (success) {
+      console.log('Login realizado com sucesso')
+      await navigateTo('/dashboard')
+    } else {
+      // Erro será mostrado pelo composable em authState.error
+      errors.general = authState.error || 'Erro desconhecido no login'
+    }
     
   } catch (error) {
     console.error('Erro no login:', error)
-    errors.general = 'Erro ao fazer login. Verifique suas credenciais e tente novamente.'
-  } finally {
-    isLoading.value = false
+    errors.general = 'Erro inesperado. Tente novamente.'
   }
 }
 
 // Handler para login com Google
 function handleGoogleLogin() {
   console.log('Login com Google')
-  // TODO: Implementar login com Google
+  // TODO: Implementar login com Google via Supabase
 }
 
 // Handler para login com GitHub
 function handleGithubLogin() {
   console.log('Login com GitHub')
-  // TODO: Implementar login com GitHub
+  // TODO: Implementar login com GitHub via Supabase
 }
 </script>

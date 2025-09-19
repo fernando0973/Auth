@@ -156,6 +156,9 @@ interface PasswordRequirement {
   test: (password: string) => boolean
 }
 
+// Composable de autenticação
+const { changePassword, authState, clearError, user } = useAuth()
+
 // Estado do formulário
 const form = reactive({
   currentPassword: '',
@@ -169,7 +172,8 @@ const errors = reactive({
   confirmPassword: ''
 })
 
-const isLoading = ref(false)
+// Estado de loading vem do composable
+const isLoading = computed(() => authState.isLoading)
 
 // Estado dos modals
 const showSuccessModal = ref(false)
@@ -305,20 +309,18 @@ const handlePasswordChange = async () => {
   if (!isFormValid.value) return
   
   try {
-    isLoading.value = true
-    
     // Limpa erros anteriores
+    clearError()
     errors.currentPassword = ''
     errors.newPassword = ''
     errors.confirmPassword = ''
     
-    const supabase = useSupabaseClient()
-    
-    // Primeira tentativa: validar senha atual fazendo login
-    const user = useSupabaseUser()
+    // Primeiro validar senha atual
     if (!user.value?.email) {
       throw new Error('Usuário não encontrado')
     }
+    
+    const supabase = useSupabaseClient()
     
     // Tenta fazer signIn para validar senha atual
     const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -332,20 +334,21 @@ const handlePasswordChange = async () => {
     }
     
     // Se chegou até aqui, a senha atual está correta
-    // Agora atualiza a senha
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: form.newPassword
-    })
+    // Usa o composable para atualizar a senha
+    const success = await changePassword(form.newPassword)
     
-    if (updateError) {
-      throw updateError
+    if (success) {
+      // Sucesso!
+      showSuccessModal.value = true
+      
+      // Reset do formulário
+      resetForm()
+    } else {
+      // Erro será mostrado pelo composable em authState.error
+      errorModalTitle.value = 'Erro ao alterar senha'
+      errorModalMessage.value = authState.error || 'Erro desconhecido ao alterar senha'
+      showErrorModal.value = true
     }
-    
-    // Sucesso!
-    showSuccessModal.value = true
-    
-    // Reset do formulário
-    resetForm()
     
   } catch (error: any) {
     console.error('Erro ao alterar senha:', error)
@@ -353,8 +356,6 @@ const handlePasswordChange = async () => {
     errorModalTitle.value = 'Erro ao alterar senha'
     errorModalMessage.value = error.message || 'Ocorreu um erro inesperado. Tente novamente.'
     showErrorModal.value = true
-  } finally {
-    isLoading.value = false
   }
 }
 </script>

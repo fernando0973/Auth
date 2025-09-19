@@ -1,7 +1,10 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex items-center justify-center">
-    <div class="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-      <h1 class="text-2xl font-bold text-gray-900 mb-6">Teste dos Componentes</h1>
+  <DashboardLayout 
+    page-title="Teste de Componentes"
+    page-description="Página para testar os componentes do sistema"
+  >
+    <div class="max-w-md w-full bg-white rounded-lg shadow-md p-8 mx-auto">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Teste dos Componentes</h2>
       
       <!-- Teste BaseInput -->
       <div class="mb-6">
@@ -51,7 +54,7 @@
         <p><strong>Senha:</strong> {{ testPassword }}</p>
       </div>
     </div>
-  </div>
+  </DashboardLayout>
 </template>
 
 <script setup lang="ts">

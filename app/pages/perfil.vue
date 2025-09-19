@@ -1,16 +1,9 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-md mx-auto px-4">
-      <!-- Header -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">
-          Perfil
-        </h1>
-        <p class="text-gray-600">
-          Gerencie sua conta e configurações
-        </p>
-      </div>
-
+  <DashboardLayout 
+    page-title="Perfil"
+    page-description="Gerencie sua conta e configurações"
+  >
+    <div class="max-w-4xl mx-auto">
       <!-- Informações do usuário -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <div class="flex items-center space-x-4 mb-4">
@@ -38,18 +31,9 @@
       </div>
 
       <!-- Formulário de troca de senha -->
-      <!-- Seção de alteração de senha -->
-      <PasswordChangeForm />      <!-- Botão Voltar -->
-      <div class="mt-6 text-center">
-        <button
-          @click="$router.back()"
-          class="text-blue-600 hover:text-blue-700 font-medium text-sm"
-        >
-          ← Voltar
-        </button>
-      </div>
+      <PasswordChangeForm />
     </div>
-  </div>
+  </DashboardLayout>
 </template>
 
 <script setup lang="ts">
